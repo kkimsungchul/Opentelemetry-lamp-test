@@ -1,0 +1,73 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:9999
+      http:
+        endpoint: 127.0.0.1:4318
+
+# 일정시간 또는 개수만큼 묶어서 전송
+#processors:
+#  batch:
+
+
+#묶어서 보내지 않도록 설정
+#다만 해도 묶어서 보냄..
+processors:
+  batch:
+    timeout: 0s
+
+exporters:
+  # =====================
+  # FILE EXPORTERS (분리)
+  # =====================
+  file/logs:
+    path: logs.json
+
+  file/traces:
+    path: traces.json
+
+  file/metrics:
+    path: metrics.json
+
+  # =====================
+  # OTHER EXPORTERS
+  # =====================
+  logging:
+    verbosity: detailed
+
+  prometheus:
+    endpoint: 127.0.0.1:9464
+
+  otlp/jaeger:
+    endpoint: 127.0.0.1:4317
+    tls:
+      insecure: true
+
+  otlphttp:
+    endpoint: http://127.0.0.1:3100/otlp
+
+  otlp/dataprepper:
+    endpoint: 221.153.107.124:21890
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file/logs, otlp/dataprepper]
+      #exporters: [file/logs, otlphttp]
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file/traces]
+      #exporters: [file/traces, otlp/jaeger]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file/metrics]
+      #exporters: [file/metrics, prometheus]

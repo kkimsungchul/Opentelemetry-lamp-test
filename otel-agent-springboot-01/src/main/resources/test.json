@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-01-22 23:14:22.750",
+  "service": "OG077201",
+  "operation": "LampController Logic",
+  "bizTransactionId": null,
+  "transactionId": "f21b5e85-f61d-41e9-8d15-ed8c763c8986",
+  "logType": "IN_RES",
+  "payload": null,
+  "caller": null,
+  "host": {
+    "name": "sung-PC",
+    "ip": "169.254.83.107"
+  },
+  "response": {
+    "type": "I",
+    "code": "SUCCESS",
+    "duration": "303"
+  },
+  "user": {
+    "id": "82284884",
+    "ip": "169.254.83.107",
+    "type": "LAMP_MANAGER"
+  },
+  "device": null,
+  "security": {
+    "type": "ACCESS",
+    "event": "LOGIN",
+    "target": "82284884",
+    "reason": "잘되나 테스트 해보자",
+    "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}"
+  },
+  "destination": null
+}
