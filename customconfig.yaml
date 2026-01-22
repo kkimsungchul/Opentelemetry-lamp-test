@@ -56,7 +56,7 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: []
       exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
 

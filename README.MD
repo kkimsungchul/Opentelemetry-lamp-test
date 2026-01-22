@@ -10,7 +10,7 @@
 각각 구성위치는
 - 애플리케이션 -> 윈도우
 - 오픈텔레메트리 콜렉터 -> 윈도우
-- 데이터 프레퍼 -> 윈도우
+- 데이터 프레퍼 -> 리눅스
 
 ### 실행 방법
 
@@ -91,7 +91,8 @@ OTEL_SERVICE_CODE = OG077201
 OTEL_SERVICE_HOST = 192.168.5.100
 ```
 
-- 아래는 프로젝트 내에 있는 스프링부트 실행 시 준 변수 설정임
+- 아래는 프로젝트 내에 있는 스프링부트 실행 시 준 환경변수 설정임
+- 리눅스도 변수명은 똑같으니 컨버팅해서 사용하면 됨
 ```shell
 @echo off
 rem Springboot build with gradle
@@ -128,7 +129,10 @@ rem echo ## cd .\build\libs&& java -jar otel-agent-springboot-01-0.0.1-SNAPSHOT.
 
 - LampService 에서는 LAMP 로그 규격에 맞는 로그만 생성해줘서 아래에는 작성하지 않았음
 - 소스코드 확인이 필요하면 otel-agent-springboot-01 로 가서 확인하면됨
-- 또한 내장DB도 설정해놨으니 컨트롤러를 확인해서 다른내용을 테스트하거나 추가하여도 됨
+- 내장 DB를 사용하도록 해놓아서 DB사용 관련은 아래 자바 패키지 경로 밑의 소스코드내에서 확인하면됨
+```
+otel-agent-springboot-01\src\main\java\com\kt\otelagentspringboot01\lamp\
+```
 
 - 컨트롤러
   ```java
@@ -469,10 +473,9 @@ receivers:
       http:
         endpoint: 127.0.0.1:4318
 
-# 일정시간 또는 개수만큼 묶어서 전송
+
 #processors:
 #  batch:
-
 
 #묶어서 보내지 않도록 설정
 #다만 해도 묶어서 보냄..
@@ -519,6 +522,8 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
+	  #이거 프로세스 안주면 묶어서 안보낼 가능성 있다 했는데 안됨
+	  #processors: []
       processors: [batch]
       exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
@@ -566,5 +571,6 @@ service:
 ```
 
 ### 실제 로그 데이터 위치
-[오픈텔레메트리 콜렉터 로그](./log_data/dataprepper-lamp-logs.json)
-[데이터프레퍼 로그](./log_data/opentelemetry-logs.json)
+[오픈텔레메트리 콜렉터 로그](./log_data/opentelemetry-logs.json)
+
+[데이터프레퍼 로그](./log_data/dataprepper-lamp-logs.json)
