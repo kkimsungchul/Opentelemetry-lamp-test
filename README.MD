@@ -66,6 +66,8 @@ logApi = logApis.get(logApis.size() - 1);
   - 리시버는 수집
   - 프로세서는 수집한 데이터를 필터/변환/샘플링 가능
   - 익스포터는 어디로 보낼지 정할 수 있으며, 한곳으로만 보내는게 아닌 로그를 파일/카프카/로키등으로 여러개로 전송 가능
+  - 콜렉터 공식 문서 : https://opentelemetry.io/docs/collector/
+  - 서비스 시작시 프로메테우스 관련 오류가 날 경우 : https://opentelemetry.io/docs/collector/internal-telemetry/#configure-internal-metrics
 
 - 데이터 프레퍼(data prepper)
   - 오픈텔레메트리에서 수집한 로그들의 전처리를 담당함

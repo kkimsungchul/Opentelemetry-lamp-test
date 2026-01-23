@@ -7,11 +7,11 @@ import com.kt.otelagentspringboot01.service.LogService;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +20,13 @@ public class LogController {
 
     private final LogService logService;
     private static final Logger logger = LogManager.getLogger(LogController.class.getName());
+
+    @PostMapping("/otel/v1/logs")
+    public ResponseEntity<Void> receive(@RequestBody Map<String, Object> body) {
+        System.out.println("==== RECEIVED LOG ====");
+        System.out.println(body);
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/save")
     public void save(){

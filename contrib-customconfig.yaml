@@ -3,8 +3,7 @@ receivers:
     protocols:
       grpc:
         endpoint: 127.0.0.1:9999
-      http:
-        endpoint: 127.0.0.1:4318
+
 
 
 
@@ -37,7 +36,7 @@ exporters:
   # =====================
   # OTHER EXPORTERS
   # =====================
-  logging:
+  debug:
     verbosity: detailed
 
   prometheus:
@@ -56,12 +55,19 @@ exporters:
     tls:
       insecure: true
 
+
+  otlphttp/spring:
+    endpoint: http://127.0.0.1:5050/log/otel
+    encoding: json
+    compression: none
+
 service:
   pipelines:
     logs:
       receivers: [otlp]
       processors: [transform]
-      exporters: [file/logs, otlp/dataprepper]
+      exporters: [file/logs, otlphttp/spring]
+      #exporters: [file/logs, otlp/dataprepper, otlphttp/spring]
       #exporters: [file/logs, otlphttp]
 
     traces:
@@ -75,3 +81,12 @@ service:
       processors: [batch]
       exporters: [file/metrics]
       #exporters: [file/metrics, prometheus]
+
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '0.0.0.0'
+                port: 8888

@@ -10,6 +10,7 @@ set JAVA_TOOL_OPTIONS=-javaagent:..\..\opentelemetry-javaagent.jar
 
 set OTEL_SERVICE_NAME=otel-agent-springboot-01
 set OTEL_RESOURCE_ATTRIBUTES=service.code=OG077201
+set OTEL_RESOURCE_ATTRIBUTES=TOPIC_LAMP=OG077201
 
 set OTEL_METRIC_EXPORT_INTERVAL=1000
 set OTEL_TRACES_EXPORTER=otlp
