@@ -25,7 +25,7 @@ public class LampService {
                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"))
         );
         vo.setService("OG077201");
-        vo.setOperation("login");
+        vo.setOperation("로그인");
         vo.setTransactionId(UUID.randomUUID().toString());
         vo.setLogType("IN_RES");
 

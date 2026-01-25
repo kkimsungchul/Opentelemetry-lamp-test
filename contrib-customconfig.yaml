@@ -14,12 +14,6 @@ processors:
     timeout: 1ms
     send_batch_size: 1
 
-  transform:
-    log_statements:
-      - context: log
-        statements:
-          - set(body, body)
-
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -55,19 +49,17 @@ exporters:
     tls:
       insecure: true
 
+  otlphttp/fluentbit:
+    endpoint: http://221.153.107.124:4318
 
-  otlphttp/spring:
-    endpoint: http://127.0.0.1:5050/log/otel
-    encoding: json
-    compression: none
 
 service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [transform]
-      exporters: [file/logs, otlphttp/spring]
-      #exporters: [file/logs, otlp/dataprepper, otlphttp/spring]
+      processors: [batch]
+      exporters: [file/logs, otlphttp/fluentbit]
+      #exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
 
     traces:
