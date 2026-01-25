@@ -1,37 +1,26 @@
 {
-  "timestamp": "2026-01-25 05:03:03.045",
-  "service": "OG077201",
-  "operation": "로그인",
-  "bizTransactionId": null,
-  "transactionId": "846240e7-8f11-4395-b73b-7d341342d7c1",
-  "logType": "IN_RES",
-  "payload": "LogApi(seq=1, userIp=null, userId=27d9aebf-0897-4474-9ee7-ca63fe10f4d1, startTime=2026-01-25T04:47:14.516728, endTime=2026-01-25T04:47:14.516728, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
-  "caller": null,
-  "host": {
-    "name": "sung-PC",
-    "ip": "169.254.83.107"
-  }
-,
-  "response": {
-    "type": "I",
-    "code": "SUCCESS",
-    "duration": "303"
-  }
-,
-  "user": {
-    "id": "82284884",
-    "ip": "169.254.83.107",
-    "type": "LAMP_MANAGER"
-  }
-,
-  "device": null,
-  "security": {
-    "type": "ACCESS",
-    "event": "LOGIN",
-    "target": "82284884",
-    "reason": "잘되나 테스트 해보자",
-    "detail": "{"id":"82284884","ip":"10.225.164.84","type":"LAMP_MANAGER"}"
-  }
-,
-  "destination": null
+  "timeUnixNano": "1769342076386344400",
+  "observedTimeUnixNano": "1769342076386344400",
+  "severityNumber": 9,
+  "severityText": "INFO",
+  "body": {
+    "stringValue": "{"timestamp":"2026-01-25 20:54:36.381","service":"OG077201","operation":"LampBusinessService Logic","bizTransactionId":null,"transactionId":"b8d3c406-58a0-438a-b873-4e6ce89ee6f6","logType":"IN_RES","payload":null,"caller":null,"host":{"name":"sung-PC","ip":"169.254.83.107"},"response":{"type":"I","code":"SUCCESS","duration":"303"},"user":{"id":"82284884","ip":"169.254.83.107","type":"LAMP_MANAGER"},"device":null,"security":{"type":"ACCESS","event":"LOGIN","target":"82284884","reason":"잘되나 테스트 해보자","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}"},"destination":null}"
+  },
+  "attributes": [
+    {
+      "key": "trace_id",
+      "value": {
+        "stringValue": "76da4b2a151f9b7eb2765f9b27cfaf98"
+      }
+    },
+    {
+      "key": "span_id",
+      "value": {
+        "stringValue": "ab889891b901a570"
+      }
+    }
+  ],
+  "flags": 1,
+  "traceId": "76da4b2a151f9b7eb2765f9b27cfaf98",
+  "spanId": "ab889891b901a570"
 }

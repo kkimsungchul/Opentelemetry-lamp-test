@@ -14,6 +14,12 @@ processors:
     timeout: 1ms
     send_batch_size: 1
 
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["trace_id"], trace_id.string)
+          - set(attributes["span_id"], span_id.string)
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -57,7 +63,7 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [transform]
       exporters: [file/logs, otlphttp/fluentbit]
       #exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
