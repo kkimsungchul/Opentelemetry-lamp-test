@@ -15,8 +15,8 @@
 9. [오픈텔레메트리 콜렉터 수집 로그 규격](#오픈텔레메트리-콜렉터-수집-로그-규격)
 10. [오픈텔레메트리 콜렉터 설정 (데이터 프레퍼로 전송)](#오픈텔레메트리-콜렉터-설정-데이터-프레퍼로-전송)
 11. [수집되는 로그 규격 비교](#수집되는-로그-규격-비교)
-12. [실제 로그 데이터 위치](#실제-로그-데이터-위치)
-
+13. [데이터 프레퍼에서 로그 변환](#데이터-프레퍼에서-로그-변환)
+14. [실제 로그 데이터 위치](#실제-로그-데이터-위치)
 
 ### 아키텍처 구성
 아래 순서로 로그 데이터 흐름
@@ -518,7 +518,7 @@ otel-agent-springboot-01\src\main\java\com\kt\otelagentspringboot01\lamp\
 ### 오픈텔레메트리 콜렉터 설정 (데이터 프레퍼로 전송)
 - 콜렉터에서 수집한 로그를 데이터 프레퍼로 보내서 전처리를 하기 위함
 - 아래 설정에서 otlp/dataprepper를 추가하고 logs: exporters: 에 넣어 주었음
-
+- traceid와 spanid 를 속성에 매핑 하는부분은 혹시나 속성값을 나중에 쓸 수 있으니 작성 했음, 제거하여도 상관없는 값
 ```yaml
 receivers:
   otlp:
@@ -538,7 +538,13 @@ receivers:
 processors:
   batch:
     timeout: 0s
-
+  # traceid와 spanid 를 속성에 매핑
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["trace_id"], trace_id.string)
+          - set(attributes["span_id"], span_id.string)
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -619,14 +625,86 @@ service:
 
 - 데이터 프레퍼 처리 로그
 ```
-{"service.name":"otel-agent-springboot-01","body":"### lampVO json : {...}"}
-{"service.name":"otel-agent-springboot-01","body":"### lampVO : {...}"}
-{"service.name":"otel-agent-springboot-01","body":"INFO"}
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"### info get in ### logApiList","ob
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"### warn get in ### logApiList","ob
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"{\"timestamp\":\"2026-01-23 00:22:0
 ```
 
-- 
+### 데이터 프레퍼에서 로그 변환
 
+- 위 데이터를 바로 사용해도 되지만, 원하는건 body안에 있는 json 타입의 데이터
+- 설정파일 변경 (pipelines.yaml)
+```yaml
+body-only-pipeline:
+  source:
+    otel_logs_source:
+      ssl: false
+      port: 21890
 
+  processor:
+    # 1.  body →> message로 변환
+    - rename_keys:
+        entries:
+          - from_key: body
+            to_key: message
+
+    # 2. message를 JSON으로 파싱
+    - parse_json:
+        source: message
+        destination: message
+    # 3. message 필드에 trace_id와 span_id추가
+    - add_entries:
+        entries:
+          - key: message/trace_id
+            format: "${traceId}"
+          - key: message/span_id
+            format: "${spanId}"
+
+  sink:
+    - file:
+        path: /home/dataprepper/log/lamp-logs.json
+        append: true
+
+```
+
+- 출력 데이터
+```json
+	{
+	  "traceId": "ac21153b7a5579fd1a63ef7e0659379b",
+	  "spanId": "264630ec38feb394",
+	  "message": {
+		"logType": "IN_RES",
+		"destination": null,
+		"transactionId": "af0c76a2-77fc-4d36-b570-11448bab7f3d",
+			....중략...
+		"timestamp": "2026-01-26 22:32:21.533",
+		"trace_id": "ac21153b7a5579fd1a63ef7e0659379b",
+		"span_id": "264630ec38feb394"
+	  },
+	  "log.attributes.trace_id": "ac21153b7a5579fd1a63ef7e0659379b",
+	  "resource.attributes.telemetry@sdk@language": "java",
+	  "resource.attributes.host@name": "sung-PC",
+	  "resource.attributes.process@pid": 24636,
+	  "resource.attributes.host@arch": "amd64",
+	  "resource.attributes.process@runtime@description": "Oracle Corporation OpenJDK 64-Bit Server VM 17.0.2+8-86",
+	  "resource.attributes.process@executable@path": "C:\\Program Files\\Java\\jdk-17.0.2\\bin\\java.exe",
+	  "resource.attributes.service@instance@id": "cbf5dd2e-321a-4e38-90c0-558a337eea9b",
+	  "resource.attributes.telemetry@sdk@version": "1.37.0",
+	  "resource.attributes.service@name": "otel-agent-springboot-01",
+	  "resource.attributes.process@command_line": "C:\\Program Files\\Java\\jdk-17.0.2\\bin\\java.exe -javaagent:..\\..\\opentelemetry-javaagent.jar -jar otel-agent-springboot-01-0.0.1-SNAPSHOT.jar",
+	  "instrumentationScope.name": "com.kt.otelagentspringboot01.lamp.LampBusinessService",
+	  "resource.attributes.process@runtime@version": "17.0.2+8-86",
+	  "resource.attributes.service@version": "0.0.1-SNAPSHOT",
+	  "resource.attributes.telemetry@sdk@name": "opentelemetry",
+	  "resource.attributes.process@runtime@name": "OpenJDK Runtime Environment",
+	  "resource.attributes.telemetry@distro@name": "opentelemetry-java-instrumentation",
+	  "log.attributes.span_id": "264630ec38feb394",
+	  "resource.attributes.os@type": "windows",
+	  "resource.attributes.TOPIC_LAMP": "OG077201",
+	  "resource.attributes.os@description": "Windows 10 10.0",
+	  "resource.attributes.telemetry@distro@version": "2.3.0"
+	}	
+```
 
 
 ### 실제 로그 데이터 위치

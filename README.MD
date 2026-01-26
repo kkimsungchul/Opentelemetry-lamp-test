@@ -1,3 +1,23 @@
+## 목차
+1. [아키텍처 구성](#아키텍처-구성)
+2. [실행 방법](#실행-방법)
+3. [테스트 URL](#테스트-url)
+4. [로그 저장 위치](#로그-저장-위치)
+5. [툴 설명](#툴-설명)
+  - [애플리케이션](#애플리케이션)
+  - [오픈텔레메트리 에이전트](#오픈텔레메트리-에이전트)
+  - [오픈텔레메트리 콜렉터](#오픈텔레메트리-콜렉터)
+  - [오픈텔레메트리 콜렉터 컨트리브](#오픈텔레메트리-콜렉터-컨트리브)
+  - [데이터 프레퍼](#데이터-프레퍼data-prepper)
+6. [오픈텔레메트리 에이전트를 사용한 구동](#오픈텔레메트리-에이전트를-사용한-구동)
+7. [JAVA 소스코드](#java-소스코드)
+8. [발생시킨 로그 원문](#발생시킨-로그-원문)
+9. [오픈텔레메트리 콜렉터 수집 로그 규격](#오픈텔레메트리-콜렉터-수집-로그-규격)
+10. [오픈텔레메트리 콜렉터 설정 (데이터 프레퍼로 전송)](#오픈텔레메트리-콜렉터-설정-데이터-프레퍼로-전송)
+11. [수집되는 로그 규격 비교](#수집되는-로그-규격-비교)
+13. [데이터 프레퍼에서 로그 변환](#데이터-프레퍼에서-로그-변환)
+14. [실제 로그 데이터 위치](#실제-로그-데이터-위치)
+
 ### 아키텍처 구성
 아래 순서로 로그 데이터 흐름
 ```
@@ -66,8 +86,41 @@ logApi = logApis.get(logApis.size() - 1);
   - 리시버는 수집
   - 프로세서는 수집한 데이터를 필터/변환/샘플링 가능
   - 익스포터는 어디로 보낼지 정할 수 있으며, 한곳으로만 보내는게 아닌 로그를 파일/카프카/로키등으로 여러개로 전송 가능
-  - 콜렉터 공식 문서 : https://opentelemetry.io/docs/collector/
-  - 서비스 시작시 프로메테우스 관련 오류가 날 경우 : https://opentelemetry.io/docs/collector/internal-telemetry/#configure-internal-metrics
+
+- 오픈텔레메트리 콜렉터 컨트리브
+  - 오픈텔레메트리 콜렉터는 공식에서 제공하는 기본수집기지만, 커트리브는 추가 컴포넌트들을 포함하고 있음
+  - 익스포터, 프로세서 확장 기능을 사용하기 위해 사용함
+  - 다운로드 링크에서 다운 받은 후 콜렉터와 똑같이 설정파일을 만들어주고 실행하면 됨
+  - 다운로드 링크 : https://github.com/open-telemetry/opentelemetry-collector-releases/releases/tag/v0.144.0
+
+  - 기본 콜렉터와 컨트리브의 차이점
+
+  | 구분 | Collector (Core) | Collector Contrib |
+  |---------------------|-----------------------------------------------|------------------------------------------------|
+  | **포함 컴포넌트** | 최소 기본 Receiver / Exporter | Core + 커뮤니티/벤더 확장 컴포넌트 포함 |
+  | **안정성** | 매우 높음 | 컴포넌트별 안정성 상이 |
+  | **빌드 크기** | 작음 | 큼 |
+  | **용도** | 표준 OTLP 통신, 경량 배포 | 다양한 로그·메트릭·트레이스 수집 가능 |
+  | **유지보수** | OpenTelemetry 공식 팀 직접 관리 | 일부는 커뮤니티 또는 벤더에서 유지 |
+
+  - OpenTelemetry Collector (Core)
+  - **기본 버전**
+    - 필수 Receiver / Processor / Exporter만 포함
+    - 예: OTLP, Jaeger, Prometheus 등
+    - **특징**
+      - 가볍고 안정적
+      - 보안 검증이 비교적 철저함
+      - 외부 시스템 연동 기능이 제한적
+  
+  - OpenTelemetry Collector Contrib
+  - **확장 버전**
+    - Core에 없는 Receiver·Exporter 포함
+    - 예: Kafka, AWS X-Ray, Azure Monitor, Redis, MySQL 등
+    - **특징**
+      - 다양한 환경 지원
+      - 기능은 많지만 빌드 크기 증가 및 의존성 많음
+      - 일부 컴포넌트는 안정성·지원 주기 차이 있음
+
 
 - 데이터 프레퍼(data prepper)
   - 오픈텔레메트리에서 수집한 로그들의 전처리를 담당함
@@ -131,7 +184,7 @@ rem echo ## cd .\build\libs&& java -jar otel-agent-springboot-01-0.0.1-SNAPSHOT.
 
 - LampService 에서는 LAMP 로그 규격에 맞는 로그만 생성해줘서 아래에는 작성하지 않았음
 - 소스코드 확인이 필요하면 otel-agent-springboot-01 로 가서 확인하면됨
-- 내장 DB를 사용하도록 해놓아서 DB사용 관련은 아래 자바 패키지 경로 밑의 소스코드내에서 확인하면됨
+- 내장 DB를 사용하도록 해놓아서 DB사용 관련은 아래 패키지 경로 밑의 소스코드내에서 확인하면됨
 ```
 otel-agent-springboot-01\src\main\java\com\kt\otelagentspringboot01\lamp\
 ```
@@ -465,7 +518,7 @@ otel-agent-springboot-01\src\main\java\com\kt\otelagentspringboot01\lamp\
 ### 오픈텔레메트리 콜렉터 설정 (데이터 프레퍼로 전송)
 - 콜렉터에서 수집한 로그를 데이터 프레퍼로 보내서 전처리를 하기 위함
 - 아래 설정에서 otlp/dataprepper를 추가하고 logs: exporters: 에 넣어 주었음
-
+- traceid와 spanid 를 속성에 매핑 하는부분은 혹시나 속성값을 나중에 쓸 수 있으니 작성 했음, 제거하여도 상관없는 값
 ```yaml
 receivers:
   otlp:
@@ -475,16 +528,23 @@ receivers:
       http:
         endpoint: 127.0.0.1:4318
 
-
+# 일정시간 또는 개수만큼 묶어서 전송
 #processors:
 #  batch:
+
 
 #묶어서 보내지 않도록 설정
 #다만 해도 묶어서 보냄..
 processors:
   batch:
     timeout: 0s
-
+  # traceid와 spanid 를 속성에 매핑
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["trace_id"], trace_id.string)
+          - set(attributes["span_id"], span_id.string)
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -524,8 +584,6 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-	  #이거 프로세스 안주면 묶어서 안보낼 가능성 있다 했는데 안됨
-	  #processors: []
       processors: [batch]
       exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
@@ -567,12 +625,89 @@ service:
 
 - 데이터 프레퍼 처리 로그
 ```
-{"service.name":"otel-agent-springboot-01","body":"### lampVO json : {...}"}
-{"service.name":"otel-agent-springboot-01","body":"### lampVO : {...}"}
-{"service.name":"otel-agent-springboot-01","body":"INFO"}
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"### info get in ### logApiList","ob
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"### warn get in ### logApiList","ob
+{"traceId":"9d3a14f02ebc4184dd6d8f6e86a70b06","spanId":"9092cdd6d54cee8a","body":"{\"timestamp\":\"2026-01-23 00:22:0
 ```
 
-### 실제 로그 데이터 위치
-[오픈텔레메트리 콜렉터 로그](./log_data/opentelemetry-logs.json)
+### 데이터 프레퍼에서 로그 변환
 
-[데이터프레퍼 로그](./log_data/dataprepper-lamp-logs.json)
+- 위 데이터를 바로 사용해도 되지만, 원하는건 body안에 있는 json 타입의 데이터
+- 설정파일 변경 (pipelines.yaml)
+```yaml
+body-only-pipeline:
+  source:
+    otel_logs_source:
+      ssl: false
+      port: 21890
+
+  processor:
+    # 1.  body →> message로 변환
+    - rename_keys:
+        entries:
+          - from_key: body
+            to_key: message
+
+    # 2. message를 JSON으로 파싱
+    - parse_json:
+        source: message
+        destination: message
+    # 3. message 필드에 trace_id와 span_id추가
+    - add_entries:
+        entries:
+          - key: message/trace_id
+            format: "${traceId}"
+          - key: message/span_id
+            format: "${spanId}"
+
+  sink:
+    - file:
+        path: /home/dataprepper/log/lamp-logs.json
+        append: true
+
+```
+
+- 출력 데이터
+```json
+	{
+	  "traceId": "ac21153b7a5579fd1a63ef7e0659379b",
+	  "spanId": "264630ec38feb394",
+	  "message": {
+		"logType": "IN_RES",
+		"destination": null,
+		"transactionId": "af0c76a2-77fc-4d36-b570-11448bab7f3d",
+			....중략...
+		"timestamp": "2026-01-26 22:32:21.533",
+		"trace_id": "ac21153b7a5579fd1a63ef7e0659379b",
+		"span_id": "264630ec38feb394"
+	  },
+	  "log.attributes.trace_id": "ac21153b7a5579fd1a63ef7e0659379b",
+	  "resource.attributes.telemetry@sdk@language": "java",
+	  "resource.attributes.host@name": "sung-PC",
+	  "resource.attributes.process@pid": 24636,
+	  "resource.attributes.host@arch": "amd64",
+	  "resource.attributes.process@runtime@description": "Oracle Corporation OpenJDK 64-Bit Server VM 17.0.2+8-86",
+	  "resource.attributes.process@executable@path": "C:\\Program Files\\Java\\jdk-17.0.2\\bin\\java.exe",
+	  "resource.attributes.service@instance@id": "cbf5dd2e-321a-4e38-90c0-558a337eea9b",
+	  "resource.attributes.telemetry@sdk@version": "1.37.0",
+	  "resource.attributes.service@name": "otel-agent-springboot-01",
+	  "resource.attributes.process@command_line": "C:\\Program Files\\Java\\jdk-17.0.2\\bin\\java.exe -javaagent:..\\..\\opentelemetry-javaagent.jar -jar otel-agent-springboot-01-0.0.1-SNAPSHOT.jar",
+	  "instrumentationScope.name": "com.kt.otelagentspringboot01.lamp.LampBusinessService",
+	  "resource.attributes.process@runtime@version": "17.0.2+8-86",
+	  "resource.attributes.service@version": "0.0.1-SNAPSHOT",
+	  "resource.attributes.telemetry@sdk@name": "opentelemetry",
+	  "resource.attributes.process@runtime@name": "OpenJDK Runtime Environment",
+	  "resource.attributes.telemetry@distro@name": "opentelemetry-java-instrumentation",
+	  "log.attributes.span_id": "264630ec38feb394",
+	  "resource.attributes.os@type": "windows",
+	  "resource.attributes.TOPIC_LAMP": "OG077201",
+	  "resource.attributes.os@description": "Windows 10 10.0",
+	  "resource.attributes.telemetry@distro@version": "2.3.0"
+	}	
+```
+
+
+### 실제 로그 데이터 위치
+[오픈텔레메트리 콜렉터 로그](./log_data/dataprepper-lamp-logs.json)
+
+[데이터프레퍼 로그](./log_data/opentelemetry-logs.json)

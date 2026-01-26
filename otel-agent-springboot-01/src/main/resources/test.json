@@ -1,26 +1,36 @@
 {
-  "timeUnixNano": "1769342076386344400",
-  "observedTimeUnixNano": "1769342076386344400",
-  "severityNumber": 9,
-  "severityText": "INFO",
-  "body": {
-    "stringValue": "{"timestamp":"2026-01-25 20:54:36.381","service":"OG077201","operation":"LampBusinessService Logic","bizTransactionId":null,"transactionId":"b8d3c406-58a0-438a-b873-4e6ce89ee6f6","logType":"IN_RES","payload":null,"caller":null,"host":{"name":"sung-PC","ip":"169.254.83.107"},"response":{"type":"I","code":"SUCCESS","duration":"303"},"user":{"id":"82284884","ip":"169.254.83.107","type":"LAMP_MANAGER"},"device":null,"security":{"type":"ACCESS","event":"LOGIN","target":"82284884","reason":"잘되나 테스트 해보자","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}"},"destination":null}"
+  "bizTransactionId": null,
+  "caller": null,
+  "destination": null,
+  "device": null,
+  "host": {
+    "ip": "169.254.83.107",
+    "name": "sung-PC"
   },
-  "attributes": [
-    {
-      "key": "trace_id",
-      "value": {
-        "stringValue": "76da4b2a151f9b7eb2765f9b27cfaf98"
-      }
-    },
-    {
-      "key": "span_id",
-      "value": {
-        "stringValue": "ab889891b901a570"
-      }
-    }
-  ],
-  "flags": 1,
-  "traceId": "76da4b2a151f9b7eb2765f9b27cfaf98",
-  "spanId": "ab889891b901a570"
+  "logType": "IN_RES",
+  "operation": "LampController Logic",
+  "payload": null,
+  "response": {
+    "code": "SUCCESS",
+    "duration": "303",
+    "type": "I"
+  },
+  "security": {
+    "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}",
+    "event": "LOGIN",
+    "reason": "잘되나 테스트 해보자",
+    "target": "82284884",
+    "type": "ACCESS"
+  },
+  "service": "OG077201",
+  "span_id": "64dbb74bf3d89c67",
+  "timestamp": "2026-01-27 02:19:28.465",
+  "topic": "TOPIC_LAMP05",
+  "trace_id": "b345edc9a8f091980a8f9409105f805c",
+  "transactionId": "c29a7654-faf0-4c54-a2aa-a509c7c3db8b",
+  "user": {
+    "id": "82284884",
+    "ip": "169.254.83.107",
+    "type": "LAMP_MANAGER"
+  }
 }

@@ -14,46 +14,15 @@ processors:
     timeout: 1ms
     send_batch_size: 1
 
-# traceid와 spanid 를 속성에 매핑
-  # logRecords flatten
   transform:
     log_statements:
       - context: log
         statements:
-          # 1body.stringValue → body 로 단순화
-          - set(body, body.string) where body.string != nil
-
-          # 2trace / span 승격
           - set(attributes["trace_id"], trace_id.string)
           - set(attributes["span_id"], span_id.string)
 
-          # 3TOPIC_LAMP → attributes (Kafka routing용)
-          - set(attributes["topic"], resource.attributes["TOPIC_LAMP"])
-
-          # 4OTEL 메타 제거
-          - delete_key(resource.attributes, "*")
-          - delete_key(attributes, "otel.*")
 
 
-  transform/logs:
-    log_statements:
-      - context: log
-        statements:
-          # 1️JSON 문자열만 파싱 (첫 글자가 '{')
-          - set(body, ParseJSON(body.string))
-            where IsString(body)
-              and Substring(body.string, 0, 1) == "{"
-
-          # 2️trace / span 주입 (JSON 로그만)
-          - set(body["trace_id"], trace_id.string)
-            where IsMap(body)
-
-          - set(body["span_id"], span_id.string)
-            where IsMap(body)
-
-          # 3️topic 주입
-          - set(body["topic"], resource.attributes["TOPIC_LAMP"])
-            where IsMap(body)
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -89,15 +58,17 @@ exporters:
     tls:
       insecure: true
 
+  otlphttp/fluentbit:
+    endpoint: http://221.153.107.124:4318
 
 
 service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [transform/logs]
-      #exporters: [file/logs, otlphttp/fluentbit]
-      exporters: [file/logs, otlp/dataprepper, debug]
+      processors: [transform]
+      exporters: [file/logs, otlphttp/fluentbit]
+      #exporters: [file/logs, otlp/dataprepper]
       #exporters: [file/logs, otlphttp]
 
     traces:
