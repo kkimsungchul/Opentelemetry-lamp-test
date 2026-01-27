@@ -18,6 +18,23 @@
 13. [데이터 프레퍼에서 로그 변환](#데이터-프레퍼에서-로그-변환)
 14. [실제 로그 데이터 위치](#실제-로그-데이터-위치)
 
+
+# fluent-bit 내용은 아래 파일 참고
+
+[fluent-bit 사용을 위한 전체 설정파일](./SETTING.MD)
+
+[fluent-bit 설치 및 기본 사용](https://github.com/kkimsungchul/study/blob/master/Observability/%5Bfluentbit%5D%20rocky%EC%97%90%20fluentbit%20%EC%84%A4%EC%B9%98.txt)
+
+[fluent-bit 에서 데이터 파싱하기](https://github.com/kkimsungchul/study/blob/master/Observability/%5Bfluentbit%5D%20fluentbit%EC%97%90%EC%84%9C%20%EB%8D%B0%EC%9D%B4%ED%84%B0%20%ED%8C%8C%EC%8B%B1.txt)
+
+[fluent-bit 에서 trace id 접근 테스트](https://github.com/kkimsungchul/study/blob/master/Observability/%5Bfluentbit%5D%20fluentbit%EC%97%90%EC%84%9C%20traceId%20%2C%20spanId%20%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0%20-%20%EB%B6%88%EA%B0%80%EB%8A%A5.txt)
+
+[fluent-bit vs dataprepper](https://github.com/kkimsungchul/study/blob/master/Observability/%5BOTel%5D%20Opentelemetry%EC%9D%98%20%EB%8D%B0%EC%9D%B4%ED%84%B0%20%EC%B2%98%EB%A6%AC%20%ED%88%B4%20%EC%84%A0%ED%83%9D.txt)
+
+[fluent-bit 에서 kafka 토픽 동적으로 설정하기](https://github.com/kkimsungchul/study/blob/master/Observability/%5Bfluentbit%5D%20fluentbit%EC%97%90%EC%84%9C%20%EB%8F%99%EC%A0%81%EC%9C%BC%EB%A1%9C%20kafka%ED%86%A0%ED%94%BD%20%EC%84%A4%EC%A0%95%ED%95%98%EA%B8%B0.txt)
+
+[fluent-bit 수집 로그](./log_data/fluent-bit-logs.json)
+
 ### 아키텍처 구성
 아래 순서로 로그 데이터 흐름
 ```
@@ -711,3 +728,5 @@ body-only-pipeline:
 [오픈텔레메트리 콜렉터 로그](./log_data/dataprepper-lamp-logs.json)
 
 [데이터프레퍼 로그](./log_data/opentelemetry-logs.json)
+
+[플루언트비트 로그](./log_data/fluent-bit-logs.json)

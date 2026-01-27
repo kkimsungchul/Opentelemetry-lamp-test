@@ -54,6 +54,10 @@ processors:
           # 3️topic 주입
           - set(body["topic"], resource.attributes["TOPIC_LAMP"])
             where IsMap(body)
+          # 4service_name 주입
+          - set(body["service_name"], resource.attributes["service.name"])
+            where IsMap(body)
+
 exporters:
   # =====================
   # FILE EXPORTERS (분리)
@@ -84,11 +88,18 @@ exporters:
   otlphttp:
     endpoint: http://127.0.0.1:3100/otlp
 
+  otlphttp/fluentbit:
+    endpoint: http://221.153.107.124:4318
+
   otlp/dataprepper:
     endpoint: 221.153.107.124:21890
     tls:
       insecure: true
-
+  
+  kafka/logs:
+    brokers:
+      - localhost:9092
+    topic: TOPIC_LAMP05
 
 
 service:
@@ -96,8 +107,8 @@ service:
     logs:
       receivers: [otlp]
       processors: [transform/logs]
-      #exporters: [file/logs, otlphttp/fluentbit]
-      exporters: [file/logs, otlp/dataprepper, debug]
+      exporters: [file/logs, debug, otlphttp/fluentbit]
+      #exporters: [file/logs, otlp/dataprepper, debug, kafka/logs]
       #exporters: [file/logs, otlphttp]
 
     traces:

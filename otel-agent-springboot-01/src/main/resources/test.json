@@ -1,36 +1,35 @@
 {
-  "bizTransactionId": null,
-  "caller": null,
-  "destination": null,
-  "device": null,
-  "host": {
-    "ip": "169.254.83.107",
-    "name": "sung-PC"
-  },
-  "logType": "IN_RES",
-  "operation": "LampController Logic",
-  "payload": null,
-  "response": {
-    "code": "SUCCESS",
-    "duration": "303",
-    "type": "I"
-  },
-  "security": {
-    "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}",
-    "event": "LOGIN",
-    "reason": "잘되나 테스트 해보자",
-    "target": "82284884",
-    "type": "ACCESS"
-  },
-  "service": "OG077201",
-  "span_id": "64dbb74bf3d89c67",
-  "timestamp": "2026-01-27 02:19:28.465",
-  "topic": "TOPIC_LAMP05",
-  "trace_id": "b345edc9a8f091980a8f9409105f805c",
-  "transactionId": "c29a7654-faf0-4c54-a2aa-a509c7c3db8b",
-  "user": {
-    "id": "82284884",
-    "ip": "169.254.83.107",
-    "type": "LAMP_MANAGER"
+  "@timestamp": 1769532285.706057,
+  "message": {
+    "topic": "TOPIC_LAMP02",
+    "host": {
+      "name": "sung-PC",
+      "ip": "169.254.83.107"
+    },
+    "security": {
+      "event": "LOGIN",
+      "target": "82284884",
+      "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790",
+      "type": "ACCESS",
+      "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}"
+    },
+    "operation": "LampController Logic",
+    "user": {
+      "type": "LAMP_MANAGER",
+      "id": "82284884",
+      "ip": "169.254.83.107"
+    },
+    "response": {
+      "type": "I",
+      "duration": "303",
+      "code": "SUCCESS"
+    },
+    "timestamp": "2026-01-28 01:44:44.682",
+    "service": "OG077201",
+    "transactionId": "4d0008e1-b36d-4389-8dcf-d1ad5abc1b9d",
+    "service_name": "otel-agent-springboot-01",
+    "logType": "IN_RES",
+    "trace_id": "2cdb3441b322ed8a52560fd8bf6fd150",
+    "span_id": "235ca48f8d8bd34b"
   }
 }
