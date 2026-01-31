@@ -1,3 +1,74 @@
+# 선결론
+	- 기존 파일비트 
+		"message": "{ \"response\": { ... }, \"security\": { ... } }"
+		실제 타입: String
+		Storm에서 매 이벤트마다 아래 순서로 진행
+			String → JSON parse
+			Map 생성
+			내부 필드 접근
+	- 오텔 변환 규격
+		실제 타입: Map / Struct
+		Storm에서는 이미 구조화된 객체, 바로 필드 접근
+
+	- 파일비트
+		message = JSON 문자열
+		Storm에서 파싱 필요
+	- 오텔
+		body(message) = 이미 Map(JSON)
+		Storm에서 파싱 불필요
+
+	스톰에서 예시로 아래처럼 사용?
+	=====================================================================
+	if (message is String) {
+		parse JSON
+	} else {
+		use as Map
+	}
+	=====================================================================
+	또는
+	=====================================================================
+	Object body = record.get("message");
+
+	if (body instanceof Map) {
+		// OTel 로그 (fast path)
+	} else if (body instanceof String) {
+		// Filebeat 로그 (slow path)
+	}
+	=====================================================================
+
+	- 일단 json 파싱이 줄어서 성능적 이점 가져갈수있음
+	- 토픽을 분리한다면 더더욱 좋음
+
+
+# 성능 향상
+	- 기존 파일비트 사용 하는 스톰 작업
+		String → byte[]
+		JSON parser (Jackson / Gson)
+		escape 해제 (\", \u003c 같은 것들)
+		객체 생성 (Map, String, Node…)
+		Map / Value 접근
+		필드 참조
+		조건 분기
+
+	- 오텔로 변경되면 스톰에서 할 작업
+		Map / Value 접근
+		필드 참조
+		조건 분기
+	
+	지피티말로는 이렇게 하면 최대 15,000 tps에서 20,000 TPS 최소 는 보장 가능하다함
+	25,000 TPS까지도 된다는데
+
+	근데 지금 당장은 혼합해서 쓰는데,
+	이거 if문 하나더 쓴다고 발생되는 성능저하보다
+	json 파싱 비용을 줄여서 얻는 성능향상이 더큼
+
+	작업	상대 비용
+	if / instanceof	: 1
+	Map get	: 2
+	JSON parse (중첩, escape) : 100 ~ 300
+	payload(XML) 포함 parse : 500+
+
+
 # 운영 환경 파일비트로 수집한 LAMP 로그 규격
 	- 아래처럼 보면 알겠지만 message안에 있는 데이터는 문자열로 감싸져 있는 json임
 	message 타입: String
@@ -9,23 +80,23 @@
 
 
 	=====================================================================
-	{
-	  "@timestamp": "2026-01-23T02:56:21.897Z",
-	  "@metadata": {
-		"beat": "filebeat",
-		"type": "doc",
-		"version": "6.2.4",
-		"topic": "TOPIC_LAMP"
-	  },
-	  "source": "/var/log/LAMP/ag/apigw_cus-tb-apigw-0_transaction.log",
-	  "offset": 58200147,
-	  "message": "{\"timestamp\":\"2026-01-23 11:56:14.977\",\"service\":\"OG081701\",\"operation\":\"checkNumberPortabilityByPhoneNumber\",\"serviceDomain\":\"cus-in.tbapi.kt.com\",\"caller\":{\"channel\":\"AII3440053230AFUYGZ\",\"channelIp\":\"10.217.183.149\"},\"user\":{\"ip\":\"10.217.183.149\"},\"transactionId\":\"93d8baba-69fd-47f3-9efd-b5b481c53687\",\"logType\":\"IN_RES\",\"host\":{\"name\":\"cus-tb-apigw-0\",\"ip\":\"10.128.14.28\"},\"response\":{\"type\":\"E\",\"code\":\"SANTA6080\",\"desc\":\"System Error로 인증 불가(네트웍 및 시스템 장애)\"},\"payload\":\"\u003c![CDATA[\u003c?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" standalone=\\\"no\\\"?\u003e\u003cenv:Envelope xmlns:env=\\\"http:\\/\\/schemas.xmlsoap.org\\/soap\\/envelope\\/\\\" xmlns:sdp=\\\"http:\\/\\/xml.kt.com\\/sdp\\\" xmlns:sec=\\\"http:\\/\\/docs.oasis-open.org\\/wss\\/2004\\/01\\/oasis-200401-wss-wssecurity-secext-1.0.xsd\\\"\u003e\u003cenv:Header\\/\u003e\u003cenv:Body\u003e\u003csdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003cTRANSACTIONID\u003e93d8baba-69fd-47f3-9efd-b5b481c53687\u003c\\/TRANSACTIONID\u003e\u003cSEQUENCENO\u003e9999\u003c\\/SEQUENCENO\u003e\u003cERRORDETAIL\u003e\u003cerrorcode\u003eSANTA6080\u003c\\/errorcode\u003e\u003cerrordescription\u003eSystem Error로 인증 불가(네트웍 및 시스템 장애)\u003c\\/errordescription\u003e\u003c\\/ERRORDETAIL\u003e\u003creturnCode\u003e0\u003c\\/returnCode\u003e\u003creturnDesc\u003eFail\u003c\\/returnDesc\u003e\u003cIMSI\\/\u003e\u003cROUTE_INFO\\/\u003e\u003cROUTING_DIGIT\\/\u003e\u003c\\/sdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003c\\/env:Body\u003e\u003c\\/env:Envelope\u003e||{\\\"X-AGW-TX-ID\\\":\\\"93d8baba-69fd-47f3-9efd-b5b481c53687\\\",\\\"Content-Type\\\":\\\"text\\/xml;charset=UTF-8\\\"}]]\u003e\",\"custom\":{\"cl_seq\":\"9999\",\"cl_rcvCtn\":\"\",\"msgid\":\"\",\"cl_apiNo\":\"OIF_552\",\"cl_apiVersion\":\"\",\"cl_authType\":\"idpw\",\"cl_authToken\":\"\",\"cl_pathModify\":\"\",\"cl_tlsVersion\":\"\",\"cl_userAgent\":\"Java/17.0.11\",\"cl_info\":\"\",\"cl_enabler_status\":{\"code\":\"\",\"message\":\"\"}}}",
-	  "beat": {
-		"name": "filebeat-859pc",
-		"hostname": "filebeat-859pc",
-		"version": "6.2.4"
-	  }
-	}
+{
+  "@timestamp": "2026-01-23T02:56:21.897Z",
+  "@metadata": {
+	"beat": "filebeat",
+	"type": "doc",
+	"version": "6.2.4",
+	"topic": "TOPIC_LAMP"
+  },
+  "source": "/var/log/LAMP/ag/apigw_cus-tb-apigw-0_transaction.log",
+  "offset": 58200147,
+  "message": "{\"timestamp\":\"2026-01-23 11:56:14.977\",\"service\":\"OG081701\",\"operation\":\"checkNumberPortabilityByPhoneNumber\",\"serviceDomain\":\"cus-in.tbapi.kt.com\",\"caller\":{\"channel\":\"AII3440053230AFUYGZ\",\"channelIp\":\"10.217.183.149\"},\"user\":{\"ip\":\"10.217.183.149\"},\"transactionId\":\"93d8baba-69fd-47f3-9efd-b5b481c53687\",\"logType\":\"IN_RES\",\"host\":{\"name\":\"cus-tb-apigw-0\",\"ip\":\"10.128.14.28\"},\"response\":{\"type\":\"E\",\"code\":\"SANTA6080\",\"desc\":\"System Error로 인증 불가(네트웍 및 시스템 장애)\"},\"payload\":\"\u003c![CDATA[\u003c?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" standalone=\\\"no\\\"?\u003e\u003cenv:Envelope xmlns:env=\\\"http:\\/\\/schemas.xmlsoap.org\\/soap\\/envelope\\/\\\" xmlns:sdp=\\\"http:\\/\\/xml.kt.com\\/sdp\\\" xmlns:sec=\\\"http:\\/\\/docs.oasis-open.org\\/wss\\/2004\\/01\\/oasis-200401-wss-wssecurity-secext-1.0.xsd\\\"\u003e\u003cenv:Header\\/\u003e\u003cenv:Body\u003e\u003csdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003cTRANSACTIONID\u003e93d8baba-69fd-47f3-9efd-b5b481c53687\u003c\\/TRANSACTIONID\u003e\u003cSEQUENCENO\u003e9999\u003c\\/SEQUENCENO\u003e\u003cERRORDETAIL\u003e\u003cerrorcode\u003eSANTA6080\u003c\\/errorcode\u003e\u003cerrordescription\u003eSystem Error로 인증 불가(네트웍 및 시스템 장애)\u003c\\/errordescription\u003e\u003c\\/ERRORDETAIL\u003e\u003creturnCode\u003e0\u003c\\/returnCode\u003e\u003creturnDesc\u003eFail\u003c\\/returnDesc\u003e\u003cIMSI\\/\u003e\u003cROUTE_INFO\\/\u003e\u003cROUTING_DIGIT\\/\u003e\u003c\\/sdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003c\\/env:Body\u003e\u003c\\/env:Envelope\u003e||{\\\"X-AGW-TX-ID\\\":\\\"93d8baba-69fd-47f3-9efd-b5b481c53687\\\",\\\"Content-Type\\\":\\\"text\\/xml;charset=UTF-8\\\"}]]\u003e\",\"custom\":{\"cl_seq\":\"9999\",\"cl_rcvCtn\":\"\",\"msgid\":\"\",\"cl_apiNo\":\"OIF_552\",\"cl_apiVersion\":\"\",\"cl_authType\":\"idpw\",\"cl_authToken\":\"\",\"cl_pathModify\":\"\",\"cl_tlsVersion\":\"\",\"cl_userAgent\":\"Java/17.0.11\",\"cl_info\":\"\",\"cl_enabler_status\":{\"code\":\"\",\"message\":\"\"}}}",
+  "beat": {
+	"name": "filebeat-859pc",
+	"hostname": "filebeat-859pc",
+	"version": "6.2.4"
+  }
+}
 	=====================================================================
 
 
@@ -143,7 +214,7 @@
 		"trace_id": "d06551166492e3b53e15b51836a7cf05",
 		"topic": "TOPIC_LAMP02"
 	  }
-	}}
+	}
 
 	=====================================================================
 
