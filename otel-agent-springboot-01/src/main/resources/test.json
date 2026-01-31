@@ -1,35 +1,40 @@
 {
-  "@timestamp": 1769532285.706057,
+  "@timestamp": 1769888430.278067,
   "message": {
-    "topic": "TOPIC_LAMP02",
+    "service_name": "otel-agent-springboot-01",
+    "timestamp": "2026-02-01 04:40:32.828",
     "host": {
       "name": "sung-PC",
       "ip": "169.254.83.107"
     },
+    "payload": "LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
     "security": {
-      "event": "LOGIN",
-      "target": "82284884",
       "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790",
+      "detail": {
+        "type": "LAMP_MANAGER",
+        "id": "82284884",
+        "ip": "10.225.164.84"
+      },
       "type": "ACCESS",
-      "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}"
-    },
-    "operation": "LampController Logic",
-    "user": {
-      "type": "LAMP_MANAGER",
-      "id": "82284884",
-      "ip": "169.254.83.107"
+      "target": "82284884",
+      "event": "LOGIN"
     },
     "response": {
       "type": "I",
-      "duration": "303",
-      "code": "SUCCESS"
+      "code": "SUCCESS",
+      "duration": "303"
     },
-    "timestamp": "2026-01-28 01:44:44.682",
+    "span_id": "7f1ee28fc821ed6b",
     "service": "OG077201",
-    "transactionId": "4d0008e1-b36d-4389-8dcf-d1ad5abc1b9d",
-    "service_name": "otel-agent-springboot-01",
+    "operation": "\ub85c\uadf8\uc778",
+    "transactionId": "478aa393-c58d-4ee3-9604-d3a9863cab57",
+    "user": {
+      "id": "82284884",
+      "type": "LAMP_MANAGER",
+      "ip": "169.254.83.107"
+    },
     "logType": "IN_RES",
-    "trace_id": "2cdb3441b322ed8a52560fd8bf6fd150",
-    "span_id": "235ca48f8d8bd34b"
+    "trace_id": "d4a45f3fdd94ff6571c4e868e77d17ca",
+    "topic": "TOPIC_LAMP02"
   }
 }

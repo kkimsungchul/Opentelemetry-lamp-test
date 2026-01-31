@@ -1,0 +1,366 @@
+# 운영 환경 파일비트로 수집한 LAMP 로그 규격
+	- 아래처럼 보면 알겠지만 message안에 있는 데이터는 문자열로 감싸져 있는 json임
+	message 타입: String
+	안에 있는 JSON: 그냥 텍스트
+	인코딩 / escape: Filebeat가 JSON object로 해석 안 함
+	다시 파싱 필요 (String → JSON)
+	한글이  그대로 보이는 이유 : JSON으로 직렬화되지 않았기 때문
+		※ 이거때매 삽질 오지게함
+
+
+	=====================================================================
+	{
+	  "@timestamp": "2026-01-23T02:56:21.897Z",
+	  "@metadata": {
+		"beat": "filebeat",
+		"type": "doc",
+		"version": "6.2.4",
+		"topic": "TOPIC_LAMP"
+	  },
+	  "source": "/var/log/LAMP/ag/apigw_cus-tb-apigw-0_transaction.log",
+	  "offset": 58200147,
+	  "message": "{\"timestamp\":\"2026-01-23 11:56:14.977\",\"service\":\"OG081701\",\"operation\":\"checkNumberPortabilityByPhoneNumber\",\"serviceDomain\":\"cus-in.tbapi.kt.com\",\"caller\":{\"channel\":\"AII3440053230AFUYGZ\",\"channelIp\":\"10.217.183.149\"},\"user\":{\"ip\":\"10.217.183.149\"},\"transactionId\":\"93d8baba-69fd-47f3-9efd-b5b481c53687\",\"logType\":\"IN_RES\",\"host\":{\"name\":\"cus-tb-apigw-0\",\"ip\":\"10.128.14.28\"},\"response\":{\"type\":\"E\",\"code\":\"SANTA6080\",\"desc\":\"System Error로 인증 불가(네트웍 및 시스템 장애)\"},\"payload\":\"\u003c![CDATA[\u003c?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" standalone=\\\"no\\\"?\u003e\u003cenv:Envelope xmlns:env=\\\"http:\\/\\/schemas.xmlsoap.org\\/soap\\/envelope\\/\\\" xmlns:sdp=\\\"http:\\/\\/xml.kt.com\\/sdp\\\" xmlns:sec=\\\"http:\\/\\/docs.oasis-open.org\\/wss\\/2004\\/01\\/oasis-200401-wss-wssecurity-secext-1.0.xsd\\\"\u003e\u003cenv:Header\\/\u003e\u003cenv:Body\u003e\u003csdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003cTRANSACTIONID\u003e93d8baba-69fd-47f3-9efd-b5b481c53687\u003c\\/TRANSACTIONID\u003e\u003cSEQUENCENO\u003e9999\u003c\\/SEQUENCENO\u003e\u003cERRORDETAIL\u003e\u003cerrorcode\u003eSANTA6080\u003c\\/errorcode\u003e\u003cerrordescription\u003eSystem Error로 인증 불가(네트웍 및 시스템 장애)\u003c\\/errordescription\u003e\u003c\\/ERRORDETAIL\u003e\u003creturnCode\u003e0\u003c\\/returnCode\u003e\u003creturnDesc\u003eFail\u003c\\/returnDesc\u003e\u003cIMSI\\/\u003e\u003cROUTE_INFO\\/\u003e\u003cROUTING_DIGIT\\/\u003e\u003c\\/sdp:checkNumberPortabilityByPhoneNumberResponse\u003e\u003c\\/env:Body\u003e\u003c\\/env:Envelope\u003e||{\\\"X-AGW-TX-ID\\\":\\\"93d8baba-69fd-47f3-9efd-b5b481c53687\\\",\\\"Content-Type\\\":\\\"text\\/xml;charset=UTF-8\\\"}]]\u003e\",\"custom\":{\"cl_seq\":\"9999\",\"cl_rcvCtn\":\"\",\"msgid\":\"\",\"cl_apiNo\":\"OIF_552\",\"cl_apiVersion\":\"\",\"cl_authType\":\"idpw\",\"cl_authToken\":\"\",\"cl_pathModify\":\"\",\"cl_tlsVersion\":\"\",\"cl_userAgent\":\"Java/17.0.11\",\"cl_info\":\"\",\"cl_enabler_status\":{\"code\":\"\",\"message\":\"\"}}}",
+	  "beat": {
+		"name": "filebeat-859pc",
+		"hostname": "filebeat-859pc",
+		"version": "6.2.4"
+	  }
+	}
+	=====================================================================
+
+
+# 오픈텔레메트리-플루언트 비트로 수집한 로그 규격
+	- 로그보면 message 안에 데이터가 한번 더 감싸져 있지 않음
+	- message 안에 또 다시 json object 가 있을경우에는 감싸져있음
+	- 예시로 보면 detail 필드임
+	- 코드에서 찍으면 잘 보임
+		
+	message 타입: Object
+	Fluent Bit이 JSON 직렬화
+	JSON 표준에 맞게 Unicode escape
+	코드에서 읽으면 정상 한글
+	구조화 로그 (trace_id, span_id 살아있음)
+
+	다시 JSON 파싱할 필요 없음
+	JsonNode / DTO 접근만 하면 됨
+
+	=====================================================================
+	{
+	  "@timestamp": 1769885181.851648,
+	  "message": {
+		"timestamp": "2026-02-01 03:46:20.810",
+		"service": "OG077201",
+		"security": {
+		  "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}",
+		  "target": "82284884",
+		  "event": "LOGIN",
+		  "type": "ACCESS",
+		  "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790"
+		},
+		"span_id": "7139c626bc94a588",
+		"payload": "LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944100, endTime=2026-02-01T03:46:20.644944100, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
+		"service_name": "otel-agent-springboot-01",
+		"operation": "\ub85c\uadf8\uc778",
+		"transactionId": "601ece6d-2335-4f6a-9267-a185acf9d1a6",
+		"logType": "IN_RES",
+		"topic": "TOPIC_LAMP02",
+		"host": {
+		  "ip": "169.254.83.107",
+		  "name": "sung-PC"
+		},
+		"trace_id": "bf6fbbc04ae83d3c0b79ed233c555fa4",
+		"user": {
+		  "id": "82284884",
+		  "ip": "169.254.83.107",
+		  "type": "LAMP_MANAGER"
+		},
+		"response": {
+		  "code": "SUCCESS",
+		  "type": "I",
+		  "duration": "303"
+		}
+	  }
+	}
+	=====================================================================
+
+
+# 한번 더 파싱
+	위에 수집된 로그들을 보면 
+	messages -> security -> detail
+	3뎁스까지 내려가는애들은 스트링타입임
+	이거를 오픈텔레메트리 콜렉터에서 한번 더 파싱이 가능함	
+	=====================================================================
+	{
+	  "@timestamp": 1769885181.851648,
+	  "message": {		
+		"security": {
+		  "detail": "{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}",
+		  "target": "82284884",
+		  "event": "LOGIN",
+		  "type": "ACCESS",
+		  "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790"
+		},
+	=====================================================================
+
+	설정을 하고 나서 결과를 보면
+	detail json으로 나옴
+	=====================================================================
+	{
+	  "message": {
+		"service_name": "otel-agent-springboot-01",
+		"timestamp": "2026-02-01 04:40:27.991",
+		"host": {
+		  "name": "sung-PC",
+		  "ip": "169.254.83.107"
+		},
+		"payload": "LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
+		"security": {
+		  "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790",
+		  "detail": {
+			"id": "82284884",
+			"type": "LAMP_MANAGER",
+			"ip": "10.225.164.84"
+		  },
+		  "target": "82284884",
+		  "event": "LOGIN",
+		  "type": "ACCESS"
+		},
+		"response": {
+		  "type": "I",
+		  "duration": "303",
+		  "code": "SUCCESS"
+		},
+		"span_id": "96470265207e2a9b",
+		"service": "OG077201",
+		"operation": "\ub85c\uadf8\uc778",
+		"transactionId": "f9dd5407-1dd2-47c9-a643-2b6b134a51ca",
+		"user": {
+		  "id": "82284884",
+		  "type": "LAMP_MANAGER",
+		  "ip": "169.254.83.107"
+		},
+		"logType": "IN_RES",
+		"trace_id": "d06551166492e3b53e15b51836a7cf05",
+		"topic": "TOPIC_LAMP02"
+	  }
+	}}
+
+	=====================================================================
+
+
+# 오픈텔레메트리 콜렉터 설정
+	=====================================================================
+	  transform/logs:
+		log_statements:
+		  - context: log
+			statements:
+			  # 1️JSON 문자열만 파싱 (첫 글자가 '{')
+			  - set(body, ParseJSON(body.string))
+				where IsString(body)
+				  and Substring(body.string, 0, 1) == "{"
+
+			  # 2️trace / span 주입 (JSON 로그만)
+			  - set(body["trace_id"], trace_id.string)
+				where IsMap(body)
+
+			  - set(body["span_id"], span_id.string)
+				where IsMap(body)
+
+			  # 3️topic 주입
+			  - set(body["topic"], resource.attributes["TOPIC_LAMP"])
+				where IsMap(body)
+			  # 4service_name 주입
+			  - set(body["service_name"], resource.attributes["service.name"])
+				where IsMap(body)
+
+			  # response
+			  - set(body["response"], ParseJSON(body["response"]))
+				where IsMap(body)
+				  and IsString(body["response"])
+				  and Substring(body["response"], 0, 1) == "{"
+
+			  # security
+			  - set(body["security"], ParseJSON(body["security"]))
+				where IsMap(body)
+				  and IsString(body["security"])
+				  and Substring(body["security"], 0, 1) == "{"
+
+			  # security.detail (2.5 depth)
+			  - set(body["security"]["detail"], ParseJSON(body["security"]["detail"]))
+				where IsMap(body)
+				  and IsString(body["security"]["detail"])
+				  and Substring(body["security"]["detail"], 0, 1) == "{"
+	 
+			  # host
+			  - set(body["host"], ParseJSON(body["host"]))
+				where IsMap(body)
+				  and IsString(body["host"])
+				  and Substring(body["host"], 0, 1) == "{"
+	=====================================================================
+
+
+
+
+# 차이점
+	운영 환경 파일비트로 수집한 LAMP 로그 규격
+		message 에 들어있는 값부터 string 타입
+	
+	오픈텔레메트리-플루언트 비트로 수집한 로그 규격
+		message 에 들어있는 1뎁스의 데이터는 json object 타입
+		2뎁스부터는 string타입
+
+
+
+
+# java 코드로 찍어보면 아래와 같음
+
+	=====================================================================
+		while (true) {
+			ConsumerRecords<String, String> records =
+					consumer.poll(Duration.ofSeconds(1));
+
+			for (ConsumerRecord<String, String> record : records) {
+				System.out.println(record.value());
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode root = mapper.readTree(record.value());
+				JsonNode message = root.path("message");
+				JsonNode security = message.path("security");
+				JsonNode operation = message.path("operation");
+				System.out.println(security.path("reason").toString());
+				System.out.println(operation);
+				System.out.println(operation.asText());
+
+
+			}
+		}
+
+	=====================================================================
+
+
+	오전 4:07:10: 실행 중 ':com.ktds.Main.main()'…
+
+	> Task :compileJava
+	> Task :processResources NO-SOURCE
+	> Task :classes
+
+	> Task :com.ktds.Main.main()
+	SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+	SLF4J: Defaulting to no-operation (NOP) logger implementation
+	SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+	record.value() : {"@timestamp":1769886445.966489,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:28.240","host":{"name":"sung-PC","ip":"169.254.83.107"},"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)","security":{"reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","target":"82284884","event":"LOGIN","type":"ACCESS"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"76ace3220d94f8aa","service":"OG077201","operation":"\ub85c\uadf8\uc778","transactionId":"eb9a063f-0b76-4ff7-8ca4-9dfe6ee20fc5","user":{"id":"82284884","type":"LAMP_MANAGER","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"13854f94321735685230d429b5532373","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "로그인"
+	operation.asText() : 로그인
+	record.value() : {"@timestamp":1769886446.374861,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:28.651","host":{"name":"sung-PC","ip":"169.254.83.107"},"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)","security":{"event":"LOGIN","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","type":"ACCESS","reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","target":"82284884"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"3982dd7cf5eaca4e","service":"OG077201","operation":"\ub85c\uadf8\uc778","transactionId":"39227cb4-79b0-48de-a6a9-4ab73f501f52","user":{"id":"82284884","type":"LAMP_MANAGER","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"0507af18027b1ac92d07b8756e61f3cd","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "로그인"
+	operation.asText() : 로그인
+	record.value() : {"@timestamp":1769886450.338495,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:32.909","host":{"name":"sung-PC","ip":"169.254.83.107"},"security":{"event":"LOGIN","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","type":"ACCESS","reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","target":"82284884"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"10ae1dc82b4c6fac","service":"OG077201","operation":"LampBusinessService Logic","transactionId":"fe268468-36ac-45d5-a7bf-75b00acb400b","user":{"type":"LAMP_MANAGER","id":"82284884","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"3a5d1ca4c51b77fa0f1694ceb7528acd","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "LampBusinessService Logic"
+	operation.asText() : LampBusinessService Logic
+	record.value() : {"@timestamp":1769886450.337618,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:32.907","host":{"name":"sung-PC","ip":"169.254.83.107"},"security":{"event":"LOGIN","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","type":"ACCESS","reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","target":"82284884"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"10ae1dc82b4c6fac","service":"OG077201","operation":"LampController Logic","transactionId":"ec5a73f9-aab4-4de9-baee-d577d97cc264","user":{"type":"LAMP_MANAGER","id":"82284884","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"3a5d1ca4c51b77fa0f1694ceb7528acd","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "LampController Logic"
+	operation.asText() : LampController Logic
+	record.value() : {"@timestamp":1769886459.431702,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:41.591","host":{"name":"sung-PC","ip":"169.254.83.107"},"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)","security":{"event":"LOGIN","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","type":"ACCESS","reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","target":"82284884"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"29c95c3cba46302d","service":"OG077201","operation":"\ub85c\uadf8\uc778","transactionId":"1942069b-0336-49f4-bef3-87da55a6dcbc","user":{"id":"82284884","type":"LAMP_MANAGER","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"520feb85308a60a14ce4624b9ce979aa","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "로그인"
+	operation.asText() : 로그인
+	record.value() : {"@timestamp":1769886460.967508,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:42.128","host":{"name":"sung-PC","ip":"169.254.83.107"},"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)","security":{"reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","target":"82284884","event":"LOGIN","type":"ACCESS"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"234910c36efc503e","service":"OG077201","operation":"\ub85c\uadf8\uc778","transactionId":"25720f3d-74d2-4b99-a470-13016ededea5","user":{"id":"82284884","type":"LAMP_MANAGER","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"efa26e55928e3d5521f94184525f3850","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "로그인"
+	operation.asText() : 로그인
+	record.value() : {"@timestamp":1769886461.327546,"message":{"service_name":"otel-agent-springboot-01","timestamp":"2026-02-01 04:07:42.488","host":{"name":"sung-PC","ip":"169.254.83.107"},"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)","security":{"event":"LOGIN","detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}","target":"82284884","type":"ACCESS","reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790"},"response":{"type":"I","duration":"303","code":"SUCCESS"},"span_id":"c3b9dd3496a71543","service":"OG077201","operation":"\ub85c\uadf8\uc778","transactionId":"c43e68a1-cc08-4e08-a019-e2464e708546","user":{"id":"82284884","type":"LAMP_MANAGER","ip":"169.254.83.107"},"logType":"IN_RES","trace_id":"a15c227d1fe29b7a8db7f3b35deb781a","topic":"TOPIC_LAMP02"}}
+	security.path("reason").toString() : "잘되나 테스트 해보자"
+	operation : "로그인"
+	operation.asText() : 로그인
+
+
+
+# 오텔 변경 후 java 코드에서 뎁스까지 확인
+	- 2뎁스
+	=====================================================================
+	{
+	  "@timestamp":1769886445.966489,
+	  "message":{
+		"service_name":"otel-agent-springboot-01",
+		"timestamp":"2026-02-01 04:07:28.240",
+		"host":{
+		  "name":"sung-PC",
+		  "ip":"169.254.83.107"
+		},
+		"payload":"LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
+		"security":{
+		  "reason":"\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790",
+		  "detail":"{\"id\":\"82284884\",\"ip\":\"10.225.164.84\",\"type\":\"LAMP_MANAGER\"}",
+		  "target":"82284884",
+		  "event":"LOGIN",
+		  "type":"ACCESS"
+		},
+		"response":{
+		  "type":"I",
+		  "duration":"303",
+		  "code":"SUCCESS"
+		},
+		"span_id":"76ace3220d94f8aa",
+		"service":"OG077201",
+		"operation":"\ub85c\uadf8\uc778",
+		"transactionId":"eb9a063f-0b76-4ff7-8ca4-9dfe6ee20fc5",
+		"user":{
+		  "id":"82284884",
+		  "type":"LAMP_MANAGER",
+		  "ip":"169.254.83.107"
+		},
+		"logType":"IN_RES",
+		"trace_id":"13854f94321735685230d429b5532373",
+		"topic":"TOPIC_LAMP02"
+	  }
+	}
+	=====================================================================
+
+	- 3뎁스
+	=====================================================================
+	{
+	  "@timestamp": 1769888430.278067,
+	  "message": {
+		"service_name": "otel-agent-springboot-01",
+		"timestamp": "2026-02-01 04:40:32.828",
+		"host": {
+		  "name": "sung-PC",
+		  "ip": "169.254.83.107"
+		},
+		"payload": "LogApi(seq=1, userIp=null, userId=4f33e9b6-6c14-4cea-b970-e5639fb745fb, startTime=2026-02-01T03:46:20.644944, endTime=2026-02-01T03:46:20.644944, callUrl=http://localhost:5050/lamp/log-save, callUrlParameter=null)",
+		"security": {
+		  "reason": "\uc798\ub418\ub098 \ud14c\uc2a4\ud2b8 \ud574\ubcf4\uc790",
+		  "detail": {
+			"type": "LAMP_MANAGER",
+			"id": "82284884",
+			"ip": "10.225.164.84"
+		  },
+		  "type": "ACCESS",
+		  "target": "82284884",
+		  "event": "LOGIN"
+		},
+		"response": {
+		  "type": "I",
+		  "code": "SUCCESS",
+		  "duration": "303"
+		},
+		"span_id": "7f1ee28fc821ed6b",
+		"service": "OG077201",
+		"operation": "\ub85c\uadf8\uc778",
+		"transactionId": "478aa393-c58d-4ee3-9604-d3a9863cab57",
+		"user": {
+		  "id": "82284884",
+		  "type": "LAMP_MANAGER",
+		  "ip": "169.254.83.107"
+		},
+		"logType": "IN_RES",
+		"trace_id": "d4a45f3fdd94ff6571c4e868e77d17ca",
+		"topic": "TOPIC_LAMP02"
+	  }
+	}
+
+
+	=====================================================================

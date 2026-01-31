@@ -39,24 +39,48 @@ processors:
     log_statements:
       - context: log
         statements:
-          # 1️JSON 문자열만 파싱 (첫 글자가 '{')
+          # 1️ JSON 문자열만 파싱 (첫 글자가 '{')
           - set(body, ParseJSON(body.string))
             where IsString(body)
               and Substring(body.string, 0, 1) == "{"
 
-          # 2️trace / span 주입 (JSON 로그만)
+          # 2️ trace / span 주입 (JSON 로그만)
           - set(body["trace_id"], trace_id.string)
             where IsMap(body)
 
           - set(body["span_id"], span_id.string)
             where IsMap(body)
 
-          # 3️topic 주입
+          # 3️ topic 주입
           - set(body["topic"], resource.attributes["TOPIC_LAMP"])
             where IsMap(body)
-          # 4service_name 주입
+          # 4 service_name 주입
           - set(body["service_name"], resource.attributes["service.name"])
             where IsMap(body)
+
+          # 5 response 파싱(json)
+          - set(body["response"], ParseJSON(body["response"]))
+            where IsMap(body)
+              and IsString(body["response"])
+              and Substring(body["response"], 0, 1) == "{"
+
+          # 6 security 파싱
+          - set(body["security"], ParseJSON(body["security"]))
+            where IsMap(body)
+              and IsString(body["security"])
+              and Substring(body["security"], 0, 1) == "{"
+
+          # 7 security.detail 파싱
+          - set(body["security"]["detail"], ParseJSON(body["security"]["detail"]))
+            where IsMap(body)
+              and IsString(body["security"]["detail"])
+              and Substring(body["security"]["detail"], 0, 1) == "{"
+ 
+          # 8 host 파싱
+          - set(body["host"], ParseJSON(body["host"]))
+            where IsMap(body)
+              and IsString(body["host"])
+              and Substring(body["host"], 0, 1) == "{"
 
 exporters:
   # =====================
